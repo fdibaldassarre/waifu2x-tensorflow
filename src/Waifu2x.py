@@ -59,13 +59,18 @@ def create_conv2Dtranspose_layer(config):
 
 class Waifu2x:
 
-    def __init__(self, input_path):
-        self.img = Image.open(input_path)
-        self._operation = None
-        self._noise_level = 0
+    def __init__(self, operation, noise_level=0):
+        self._operation = operation
+        self._noise_level = noise_level
+        self.img = None
+
+    def load_image(self, path):
+        self.img = Image.open(path)
+        if self.img.mode != 'RGB':
+            # All images are either B/W (mode = 'L') or 'RGB'
+            self.img = self.img.convert('RGB')
 
     def _get_model_path(self):
-        print(self._noise_level)
         if self._operation == OP_NOISE:
             model_name = 'vgg_7/art/noise%d_model.json' % self._noise_level
         elif self._operation == OP_SCALE:
@@ -107,38 +112,24 @@ class Waifu2x:
         data = np.asarray(self.img, dtype=np.float32) / 255.
         return np.expand_dims(data, axis=0)
 
-    def _compute_result_and_save(self, output_path):
+    def run(self, input_path, output_path):
+        self.load_image(input_path)
         model = self._build_model()
         input_data = self._get_input_tensor()
         result = model.predict(input_data)
         save_image_to(result, output_path)
 
-    def noise(self, output_path, noise_level):
-        self._operation = OP_NOISE
-        self._noise_level = noise_level
-        self._compute_result_and_save(output_path)
-
-    def scale(self,  output_path):
-        self._operation = OP_SCALE
-        self._noise_level = 0
-        self._compute_result_and_save(output_path)
-
-    def noise_scale(self, output_path, noise_level):
-        self._operation = OP_NOISE_SCALE
-        self._noise_level = noise_level
-        self._compute_result_and_save(output_path)
-
 
 def scale(input_path, output_path):
-    waifu2x = Waifu2x(input_path)
-    waifu2x.scale(output_path)
+    waifu2x = Waifu2x(OP_NOISE)
+    waifu2x.run(input_path, output_path)
 
 
 def denoise(input_path, output_path, noise_level):
-    waifu2x = Waifu2x(input_path)
-    waifu2x.noise(output_path, noise_level)
+    waifu2x = Waifu2x(OP_NOISE, noise_level)
+    waifu2x.run(input_path, output_path)
 
 
 def denoise_scale(input_path, output_path, noise_level):
-    waifu2x = Waifu2x(input_path)
-    waifu2x.noise_scale(output_path, noise_level)
+    waifu2x = Waifu2x(OP_NOISE_SCALE, noise_level)
+    waifu2x.run(input_path, output_path)
