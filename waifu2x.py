@@ -48,6 +48,8 @@ noise_level = min(max(0, noise_level), 3)
 if operation == OPERATION_NOISE:
     denoise(input_path, output_path, noise_level)
 elif operation == OPERATION_SCALE:
+    if noise_level != 0:
+        print("Warning! Noise level is ignored for scale operation. Use noise_scale to scale and remove noise.")
     scale(input_path, output_path)
 elif operation == OPERATION_NOISE_SCALE:
     denoise_scale(input_path, output_path, noise_level)
