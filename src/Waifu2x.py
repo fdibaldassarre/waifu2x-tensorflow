@@ -42,7 +42,6 @@ def create_conv2D_layer(config, activation=None):
                           strides=(config["dH"], config["dW"]),
                           kernel_size=(config["kH"], config["kW"]),
                           activation=activation,
-                          padding='same',
                           weights=weights)
     return layer
 
@@ -55,6 +54,14 @@ def create_conv2Dtranspose_layer(config):
                                    padding='same',
                                    weights=weights)
     return layer
+
+
+def pad_image(img, padding):
+    h, w = img.size
+    size = (h + 2 * padding, w + 2 * padding)
+    result = Image.new('RGB', size, (0, 0, 0))
+    result.paste(img, (padding, padding))
+    return result
 
 
 class Waifu2x:
@@ -109,7 +116,12 @@ class Waifu2x:
         return model
 
     def _get_input_tensor(self):
-        data = np.asarray(self.img, dtype=np.float32) / 255.
+        if self._operation == OP_NOISE:
+            padding = 7
+        else:
+            padding = 6
+        img = pad_image(self.img, padding)
+        data = np.asarray(img, dtype=np.float32) / 255.
         return np.expand_dims(data, axis=0)
 
     def run(self, input_path, output_path):
@@ -121,7 +133,7 @@ class Waifu2x:
 
 
 def scale(input_path, output_path):
-    waifu2x = Waifu2x(OP_NOISE)
+    waifu2x = Waifu2x(OP_SCALE)
     waifu2x.run(input_path, output_path)
 
 
