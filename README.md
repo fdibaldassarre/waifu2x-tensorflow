@@ -17,14 +17,14 @@ pip install -r requirements
 Command line options are the same as the original waifu2x.
 
 ```sh
-./waifu2x.py -i input.png -o output.png -m scale 
-./waifu2x.py -i input.png -o output.png -m noise -noise_level 1
-./waifu2x.py -i input.png -o output.png -m noise_scale -noise_level 1
+./waifu2x.py -i "input.png" -o "output.png" -m scale 
+./waifu2x.py -i "input.png" -o "output.png" -m noise -noise_level 1
+./waifu2x.py -i "input.png" -o "output.png" -m noise_scale -noise_level 1
+./waifu2x.py -l "image_list.txt" -o "upscaled/%s.png" -m noise_scale -noise_level 1
 ```
 
 ## Todo
 
-- Batch conversion command line option
 - Support for photos
 - Support for cunet model
 - Training
