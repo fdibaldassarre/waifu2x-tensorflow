@@ -132,6 +132,19 @@ class Waifu2x:
         save_image_to(result, output_path)
 
 
+def convert_image(input_path, output_path, noise_level, operation):
+    if operation == OP_NOISE:
+        denoise(input_path, output_path, noise_level)
+    elif operation == OP_SCALE:
+        if noise_level != 0:
+            print("Warning! Noise level is ignored for scale operation. Use noise_scale to scale and remove noise.")
+        scale(input_path, output_path)
+    elif operation == OP_NOISE_SCALE:
+        denoise_scale(input_path, output_path, noise_level)
+    else:
+        print("Invalid operation %s. Valid operations are noise, scale, noise_scale." % operation)
+
+
 def scale(input_path, output_path):
     waifu2x = Waifu2x(OP_SCALE)
     waifu2x.run(input_path, output_path)
