@@ -3,8 +3,8 @@ Implementation of nagadomi [Waifu2x](https://github.com/nagadomi/waifu2x) in Ten
 
 ## Requirements
 
-- Python 3
-- Tensorflow 1.14
+- Python 3.10
+- Tensorflow 2.9.1
 - Numpy
 - PIL
 
