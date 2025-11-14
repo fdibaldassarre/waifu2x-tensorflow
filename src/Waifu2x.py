@@ -33,27 +33,26 @@ def save_image_to(data, path):
 def load_weights(config):
     weights = np.asarray(config["weight"], dtype=np.float32).transpose(2, 3, 1, 0)
     bias = np.asarray(config["bias"], dtype=np.float32)
-    return [weights, bias]
-
+    return weights, bias
 
 def create_conv2D_layer(config, activation=None):
-    weights = load_weights(config)
+    weights_and_bias = load_weights(config)
     layer = layers.Conv2D(config["nOutputPlane"],
+                          (config["kH"], config["kW"]),
                           strides=(config["dH"], config["dW"]),
-                          kernel_size=(config["kH"], config["kW"]),
                           activation=activation,
-                          weights=weights)
-    return layer
+                          )
+    return layer, weights_and_bias
 
 
 def create_conv2Dtranspose_layer(config):
-    weights = load_weights(config)
+    weights_and_bias = load_weights(config)
     layer = layers.Conv2DTranspose(config["nOutputPlane"],
                                    strides=(config["dH"], config["dW"]),
                                    kernel_size=(config["kH"], config["kW"]),
                                    padding='same',
-                                   weights=weights)
-    return layer
+                                   )
+    return layer, weights_and_bias
 
 
 def pad_image(img, padding):
@@ -100,19 +99,33 @@ class Waifu2x:
             return self._build_upconv()
 
     def _build_vgg7(self):
-        layers = self._load_layers()
+        layers_config = self._load_layers()
         model = Sequential()
-        for i in range(0, 6):
-            model.add(create_conv2D_layer(layers[i], activation=leaky_relu))
-        model.add(create_conv2D_layer(layers[6]))
+        model.add(layers.Input(shape=(None, None, 3)))
+        for i in range(6):
+            layer_def, weights = create_conv2D_layer(layers_config[i], activation=leaky_relu)
+            model.add(layer_def)
+            model.layers[i].set_weights(weights)
+
+        layer_def, weights = create_conv2D_layer(layers_config[6])
+        model.add(layer_def)
+        model.layers[-1].set_weights(weights)
+
         return model
 
     def _build_upconv(self):
-        layers = self._load_layers()
+        layer_configs = self._load_layers()
         model = Sequential()
-        for i in range(0, 6):
-            model.add(create_conv2D_layer(layers[i], activation=leaky_relu))
-        model.add(create_conv2Dtranspose_layer(layers[6]))
+        model.add(layers.Input(shape=(None, None, 3)))
+        for i in range(6):
+            layer_def, weights = create_conv2D_layer(layer_configs[i], activation=leaky_relu)
+            model.add(layer_def)
+            model.layers[i].set_weights(weights)
+
+        layer_def, weights = create_conv2Dtranspose_layer(layer_configs[6])
+        model.add(layer_def)
+        model.layers[-1].set_weights(weights)
+
         return model
 
     def _get_input_tensor(self):
